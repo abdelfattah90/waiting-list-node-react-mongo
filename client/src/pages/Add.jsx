@@ -49,7 +49,7 @@ function Add() {
       <div className='container mx-auto p-5'>
         <div className='max-w-sm mx-auto'>
           <h1 className='pb-3'>Add a new client</h1>
-          <form onSubmit={handleSubmit} className=''>
+          <form onSubmit={handleSubmit}>
             <div className='mb-4'>
               <input
                 type='text'

@@ -3,9 +3,15 @@ import { useState } from 'react'
 import axios from 'axios'
 import { Link } from 'react-router-dom'
 import { FaTrash, FaEdit } from 'react-icons/fa'
+import ReactPaginate from 'react-paginate'
+import ConfirmDeleteModal from './ConfirmDeleteModal'
 
 function Home() {
   const [clients, setClients] = useState([])
+  const [pageNumber, setPageNumber] = useState(0)
+  const clientsPerPage = 5
+  const [selectedClientId, setSelectedClientId] = useState(null) // Track the selected client for deletion
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false)
 
   useEffect(() => {
     const fetchAllClients = async () => {
@@ -13,13 +19,23 @@ function Home() {
         const res = await axios.get('http://localhost:5000/clients')
         setClients(res.data.data)
       } catch (err) {
-        console.log(err)
+        // console.log(err)
       }
     }
     fetchAllClients()
   }, [])
 
-  console.log(clients)
+  // console.log(clients)
+
+  const handlePageClick = (data) => {
+    const selectedPage = data.selected
+    setPageNumber(selectedPage)
+  }
+
+  const clientsToDisplay = clients.slice(
+    pageNumber * clientsPerPage,
+    (pageNumber + 1) * clientsPerPage
+  )
 
   function getDate(dateString) {
     const date = new Date(dateString)
@@ -36,12 +52,8 @@ function Home() {
   }
 
   const handleDelete = async (id) => {
-    try {
-      await axios.delete(`http://localhost:5000/clients/${id}`)
-      window.location.reload()
-    } catch (err) {
-      console.log(err)
-    }
+    setSelectedClientId(id)
+    setIsConfirmationModalOpen(true)
   }
 
   return (
@@ -74,7 +86,7 @@ function Home() {
               </tr>
             </thead>
             <tbody>
-              {clients.map((client) => (
+              {clientsToDisplay.map((client) => (
                 <tr key={client._id}>
                   <td className='py-2 px-4 border-b'>{client.clinetname}</td>
                   <td className='py-2 px-4 border-b'>{client.clinetid}</td>
@@ -118,6 +130,43 @@ function Home() {
           </table>
         </div>
       </div>
+
+      <div className='my-4 flex justify-center'>
+        <ReactPaginate
+          previousLabel={'Previous'}
+          nextLabel={'Next'}
+          pageCount={Math.ceil(clients.length / clientsPerPage)}
+          onPageChange={handlePageClick}
+          containerClassName={'pagination flex'}
+          previousLinkClassName={
+            'px-3 p-1 mr-2 rounded bg-teal-500 text-white hover:bg-teal-600'
+          }
+          nextLinkClassName={
+            'px-3 p-1 ml-2 rounded bg-teal-500 text-white hover:bg-teal-600'
+          }
+          pageClassName={'px-3 rounded'}
+          breakClassName={'px-3 rounded'}
+          disabledClassName={'text-gray-400 pointer-events-none'}
+          activeClassName={'bg-teal-600 text-white'}
+        />
+      </div>
+
+      <ConfirmDeleteModal
+        isOpen={isConfirmationModalOpen}
+        onClose={() => setIsConfirmationModalOpen(false)}
+        onConfirm={async () => {
+          if (selectedClientId) {
+            try {
+              await axios.delete(
+                `http://localhost:5000/clients/${selectedClientId}`
+              )
+              window.location.reload()
+            } catch (err) {
+              // Handle error
+            }
+          }
+        }}
+      />
     </>
   )
 }

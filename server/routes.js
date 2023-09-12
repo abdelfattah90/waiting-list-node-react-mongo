@@ -7,6 +7,37 @@ router.get('/', (req, res) => {
   res.send('In the name of Allah the Merciful')
 })
 
+router.get('/clients/:id', async (request, response) => {
+  try {
+    const { id } = request.params
+
+    const client = await Client.findById(id)
+
+    if (!client) {
+      return response.status(404).json({ message: 'Client not found' })
+    }
+
+    return response.status(200).json(client)
+  } catch (error) {
+    console.log(error.message)
+    response.status(500).send({ message: error.message })
+  }
+})
+
+router.get('/clients', async (request, response) => {
+  try {
+    const clients = await Client.find({}).sort({ created_at: -1 })
+
+    return response.status(200).json({
+      count: clients.length,
+      data: clients,
+    })
+  } catch (error) {
+    console.log(error.message)
+    response.status(500).send({ message: error.message })
+  }
+})
+
 router.post('/clients', async (request, response) => {
   try {
     if (
@@ -27,20 +58,6 @@ router.post('/clients', async (request, response) => {
     const client = await Client.create(newClient)
 
     return response.status(201).send(client)
-  } catch (error) {
-    console.log(error.message)
-    response.status(500).send({ message: error.message })
-  }
-})
-
-router.get('/clients', async (request, response) => {
-  try {
-    const clients = await Client.find({})
-
-    return response.status(200).json({
-      count: clients.length,
-      data: clients,
-    })
   } catch (error) {
     console.log(error.message)
     response.status(500).send({ message: error.message })

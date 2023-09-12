@@ -1,17 +1,32 @@
 import axios from 'axios'
-import { useState } from 'react' // useEffect,
+import { useState, useEffect } from 'react' // useEffect,
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 const Update = () => {
-  const [clientUpdate, setClientUpdate] = useState({
-    clinetname: '',
-  })
-
-  const [error, setError] = useState(false)
-
   const location = useLocation()
   const navigate = useNavigate()
   const clientId = location.pathname.split('/')[2]
+
+  const [clientUpdate, setClientUpdate] = useState({
+    clinetname: '',
+    priority: 'Normal',
+  })
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    const fetchAllClients = async () => {
+      try {
+        const res = await axios.get(`http://localhost:5000/clients/${clientId}`)
+        setClientUpdate({
+          clinetname: res.data.clinetname,
+          priority: res.data.priority,
+        })
+      } catch (err) {
+        console.log(err)
+      }
+    }
+    fetchAllClients()
+  }, [clientId])
 
   const handleChange = (e) => {
     setClientUpdate((prev) => ({ ...prev, [e.target.name]: e.target.value }))
@@ -49,9 +64,22 @@ const Update = () => {
                 type='text'
                 placeholder='Clinet name'
                 name='clinetname'
+                value={clientUpdate.clinetname}
                 onChange={handleChange}
                 className='appearance-none border border-gray-300 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:border-teal-500'
               />
+            </div>
+
+            <div className='mb-4'>
+              <select
+                className='border border-gray-300 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:border-teal-500'
+                name='priority'
+                value={clientUpdate.priority}
+                onChange={handleChange}
+              >
+                <option value='Normal'>Normal</option>
+                <option value='Quick'>Quick</option>
+              </select>
             </div>
 
             <button
